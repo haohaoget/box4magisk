@@ -70,7 +70,7 @@ setMode(){
 	local secret
 	secret=$(getSecret)
 	if [ -n "${secret}" ]; then
-		curl -X PATCH "127.0.0.1:$(getPort)/configs" -H "authorization: Bearer $(getSecret)" -H "Content-Type: application/json" -d '{"mode": "'$1'"}'
+		curl -X PATCH "127.0.0.1:$(getPort)/configs" -H "authorization: Bearer ${secret}" -H "Content-Type: application/json" -d '{"mode": "'$1'"}'
 		return
 	fi
 	curl -X PATCH "127.0.0.1:$(getPort)/configs" -H "Content-Type: application/json" -d '{"mode": "'$1'"}'
