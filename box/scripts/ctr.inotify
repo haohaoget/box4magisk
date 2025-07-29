@@ -114,6 +114,10 @@ clashMode(){
 			else
 				target="${default_clash_mode}"
 			fi
+			# target 此时可能为空，这里先将其回退为默认的Wi-Fi模式
+			if [ -n "${target}" ] || [ -z "${target}" ]; then
+				target="${default_clash_mode}"
+			fi
 			case "${target}" in
 				direct|rule|global)
 					# 模式有效，不做任何事，继续执行
