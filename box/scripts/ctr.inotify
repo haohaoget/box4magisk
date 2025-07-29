@@ -81,7 +81,7 @@ clashMode(){
 	if [ $1 = 0 ]; then # disconnect, on CellularNetwork
 		if [ "${sta}" = 0 ]; then
 			local target
-			target="${default_clash_mode}"
+			target="${direct_clash_mode}"
 			if [ -n "${ClashMode}" ]; then
 				target="${ClashMode}"
 			fi
@@ -89,6 +89,11 @@ clashMode(){
 				target="${proxy_clash_mode}"
 			fi
 			setMode "${target}"
+		# 当从WiFi断开时，先检查核心是否在运行。如果不在（说明之前连接了disable的WiFi），就启动它。
+		elif [ "${sta}" = "1" ]; then
+			start_core
+			sleep 3
+			clashMode $@
 		elif [ "${sta}" = 2 ] || [ "${sta}" = 3 ]; then
 			sleep 1
 			clashMode $@
@@ -99,10 +104,27 @@ clashMode(){
 			if [ "${use_custom_direct}" = "true" ]; then
 				local ssid=`ssid`
 				target=`getTarget "${direct_clash_mode_list}" "${ssid}"`
+				# 确保 target 不为空，且为 "stop"
+				if [ -n "${target}" ] && [ "${target}" = "stop" ]; then
+					# 如果是，则停止核心
+					stop_core
+					# 核心修改：立即结束函数，不再执行后面的 setMode
+					return
+				fi
 			else
-				target="${direct_clash_mode}"
+				target="${default_clash_mode}"
 			fi
-			getNowMode > "${run_path}/.lastClashMode"
+			case "${target}" in
+				direct|rule|global)
+					# 模式有效，不做任何事，继续执行
+					;;
+				*)
+					# 模式无效或为其他值 (例如 "disable", "" 或拼写错误)
+					# 将其设置为安全的默认值
+					target="${direct_clash_mode}"
+					;;
+			esac
+			# getNowMode > "${run_path}/.lastClashMode"
 			setMode "${target}"
 		elif [ "${sta}" = 2 ] || [ "${sta}" = 3 ]; then
 			sleep 1
